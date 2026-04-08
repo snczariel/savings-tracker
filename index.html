@@ -64,17 +64,9 @@
   .fund-card.ef .fund-label { color: var(--blue); }
   .fund-card.travel .fund-label { color: var(--amber); }
   .fund-amount { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
-  .fund-goal-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .fund-goal-row { margin-top: 10px; }
   .fund-goal-label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .fund-goal-pct { font-size: 11px; font-weight: 500; font-family: 'DM Mono', monospace; }
-  .fund-card.savings .fund-goal-pct { color: var(--green); }
-  .fund-card.ef .fund-goal-pct { color: var(--blue); }
-  .fund-card.travel .fund-goal-pct { color: var(--amber); }
-  .progress-bar { height: 3px; background: var(--surface2); border-radius: 2px; margin-top: 6px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
-  .fund-card.savings .progress-fill { background: var(--green); }
-  .fund-card.ef .progress-fill { background: var(--blue); }
-  .fund-card.travel .progress-fill { background: var(--amber); }
+  .fund-goal-sublabel { font-size: 10px; color: var(--hint); font-family: 'DM Mono', monospace; margin-top: 2px; }
 
   .total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--surface2); border-radius: 12px; margin-bottom: 20px; border: 0.5px solid var(--border); }
   .total-label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -171,10 +163,9 @@
             <div class="fund-label">Maya Savings (Ariel) — Savings</div>
           </div>
           <div class="fund-amount" id="tot-savings">—</div>
-          <div class="progress-bar"><div class="progress-fill" id="prog-savings" style="width:0%"></div></div>
           <div class="fund-goal-row">
-            <div class="fund-goal-label">Goal: ₱80,000</div>
-            <div class="fund-goal-pct" id="pct-savings">0%</div>
+            <div class="fund-goal-label">Monthly goal: ₱80,000</div>
+            <div class="fund-goal-sublabel">target / month</div>
           </div>
         </div>
         <div class="fund-card ef">
@@ -182,10 +173,9 @@
             <div class="fund-label">Maya Savings (Audrey) — Emergency</div>
           </div>
           <div class="fund-amount" id="tot-ef">—</div>
-          <div class="progress-bar"><div class="progress-fill" id="prog-ef" style="width:0%"></div></div>
           <div class="fund-goal-row">
-            <div class="fund-goal-label">Goal: ₱18,000</div>
-            <div class="fund-goal-pct" id="pct-ef">0%</div>
+            <div class="fund-goal-label">Monthly goal: ₱18,000</div>
+            <div class="fund-goal-sublabel">target / month</div>
           </div>
         </div>
         <div class="fund-card travel">
@@ -193,10 +183,9 @@
             <div class="fund-label">Maya TD 6M (Ariel) — Travel</div>
           </div>
           <div class="fund-amount" id="tot-travel">—</div>
-          <div class="progress-bar"><div class="progress-fill" id="prog-travel" style="width:0%"></div></div>
           <div class="fund-goal-row">
-            <div class="fund-goal-label">Goal: ₱2,000</div>
-            <div class="fund-goal-pct" id="pct-travel">0%</div>
+            <div class="fund-goal-label">Monthly goal: ₱2,000</div>
+            <div class="fund-goal-sublabel">target / month</div>
           </div>
         </div>
       </div>
@@ -217,16 +206,16 @@
       <div class="form-group">
         <label class="form-label">Fund</label>
         <div class="pill-row" id="fund-pills">
-          <div class="pill" onclick="selFund('MAYA SAVINGS (ARIEL) -- SAVINGS')">Maya Savings (Ariel)</div>
-          <div class="pill" onclick="selFund('MAYA SAVINGS (AUDREY) -- EMERGENCY')">Maya Savings (Audrey)</div>
-          <div class="pill" onclick="selFund('MAYA TD 6M (ARIEL) -- TRAVEL')">Maya TD 6M (Ariel)</div>
+          <div class="pill" onclick="selFund('MAYA SAVINGS (ARIEL) -- SAVINGS')">Savings</div>
+          <div class="pill" onclick="selFund('MAYA SAVINGS (AUDREY) -- EMERGENCY')">Emergency</div>
+          <div class="pill" onclick="selFund('MAYA TD 6M (ARIEL) -- TRAVEL')">Travel</div>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Who</label>
         <div class="pill-row" id="who-pills">
-          <div class="pill" onclick="selWho('Ariel')">Ariel</div>
-          <div class="pill" onclick="selWho('Audrey')">Audrey</div>
+          <div class="pill" data-who="Ariel" onclick="selWho('Ariel')">Ariel</div>
+          <div class="pill" data-who="Audrey" onclick="selWho('Audrey')">Audrey</div>
         </div>
       </div>
       <div class="form-group">
@@ -366,7 +355,7 @@ function selWho(v) {
   selWhoVal = v;
   document.querySelectorAll('#who-pills .pill').forEach(p => {
     p.className = 'pill';
-    if (p.textContent.trim() === v) p.classList.add('sel-who');
+    if (p.getAttribute('data-who') === v) p.classList.add('sel-who');
   });
 }
 
@@ -444,8 +433,6 @@ async function loadOverview() {
     document.getElementById('entries-list').innerHTML = '<div class="empty-text">Connect your sheet in Setup to load data.</div>';
     ['savings','ef','travel'].forEach(k => {
       document.getElementById('tot-' + k).textContent = '—';
-      document.getElementById('prog-' + k).style.width = '0%';
-      document.getElementById('pct-' + k).textContent = '0%';
     });
     document.getElementById('tot-all').textContent = '—';
     return;
@@ -465,11 +452,7 @@ async function loadOverview() {
     });
     ['savings','ef','travel'].forEach(k => {
       const amt = totals[k];
-      const goal = GOALS[k];
-      const pct = Math.min(100, Math.round((amt / goal) * 100));
       document.getElementById('tot-' + k).textContent = fmt(amt);
-      document.getElementById('prog-' + k).style.width = pct + '%';
-      document.getElementById('pct-' + k).textContent = pct + '%';
     });
     document.getElementById('tot-all').textContent = fmt(grandTotal);
     const recent = [...allEntries].reverse().slice(0, 15);
