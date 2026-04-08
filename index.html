@@ -68,9 +68,9 @@
   .fund-goal-label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
   .fund-goal-sublabel { font-size: 10px; color: var(--hint); font-family: 'DM Mono', monospace; margin-top: 2px; }
 
-  .total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--surface2); border-radius: 12px; margin-bottom: 20px; border: 0.5px solid var(--border); }
-  .total-label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
-  .total-value { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+  .total-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; background: linear-gradient(135deg, #1a2e1a, #1a2a1a); border-radius: 14px; margin-bottom: 16px; border: 1px solid var(--green-border); }
+  .total-label { font-size: 12px; color: var(--green); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+  .total-value { font-size: 24px; font-weight: 600; color: var(--green); letter-spacing: -0.5px; }
 
   .section-header { font-size: 11px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hint); margin-bottom: 10px; }
 
@@ -145,53 +145,62 @@
 <body>
 <div class="app">
   <div class="topbar">
-    <div class="topbar-title">AA Joint Savings Tracker</div>
+    <div class="topbar-title">💰 AA Joint Savings Tracker</div>
     <div class="topbar-sub" id="conn-status">No sheet connected — go to Setup</div>
   </div>
   <div class="tabs">
     <div class="tab active" onclick="showTab('overview')">Dashboard</div>
     <div class="tab" onclick="showTab('add')">Add entry</div>
-    <div class="tab" onclick="showTab('setup')">Setup</div>
+    <div class="tab" onclick="showTab('setup')">🔒 Setup</div>
   </div>
   <div class="content">
 
     <!-- DASHBOARD -->
     <div class="section active" id="tab-overview">
+      <div class="total-row">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">🏦</span>
+          <div class="total-label">Total saved</div>
+        </div>
+        <div class="total-value" id="tot-all">—</div>
+      </div>
       <div class="summary-grid">
         <div class="fund-card savings">
           <div class="fund-card-top">
-            <div class="fund-label">Maya Savings (Ariel) — Savings</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:14px;">💚</span>
+              <div class="fund-label">Maya Savings (Ariel) — Savings</div>
+            </div>
           </div>
           <div class="fund-amount" id="tot-savings">—</div>
           <div class="fund-goal-row">
             <div class="fund-goal-label">Monthly goal: ₱80,000</div>
-            <div class="fund-goal-sublabel">target / month</div>
           </div>
         </div>
         <div class="fund-card ef">
           <div class="fund-card-top">
-            <div class="fund-label">Maya Savings (Audrey) — Emergency</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:14px;">🛡️</span>
+              <div class="fund-label">Maya Savings (Audrey) — Emergency</div>
+            </div>
           </div>
           <div class="fund-amount" id="tot-ef">—</div>
           <div class="fund-goal-row">
             <div class="fund-goal-label">Monthly goal: ₱18,000</div>
-            <div class="fund-goal-sublabel">target / month</div>
           </div>
         </div>
         <div class="fund-card travel">
           <div class="fund-card-top">
-            <div class="fund-label">Maya TD 6M (Ariel) — Travel</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:14px;">✈️</span>
+              <div class="fund-label">Maya TD 6M (Ariel) — Travel</div>
+            </div>
           </div>
           <div class="fund-amount" id="tot-travel">—</div>
           <div class="fund-goal-row">
             <div class="fund-goal-label">Monthly goal: ₱2,000</div>
-            <div class="fund-goal-sublabel">target / month</div>
           </div>
         </div>
-      </div>
-      <div class="total-row">
-        <div class="total-label">Total saved</div>
-        <div class="total-value" id="tot-all">—</div>
       </div>
       <div class="section-header">Recent entries</div>
       <div id="entries-list"><div class="loading-text">Loading...</div></div>
@@ -206,9 +215,9 @@
       <div class="form-group">
         <label class="form-label">Fund</label>
         <div class="pill-row" id="fund-pills">
-          <div class="pill" onclick="selFund('MAYA SAVINGS (ARIEL) -- SAVINGS')">Savings</div>
-          <div class="pill" onclick="selFund('MAYA SAVINGS (AUDREY) -- EMERGENCY')">Emergency</div>
-          <div class="pill" onclick="selFund('MAYA TD 6M (ARIEL) -- TRAVEL')">Travel</div>
+          <div class="pill" data-fund="MAYA SAVINGS (ARIEL) -- SAVINGS" onclick="selFund('MAYA SAVINGS (ARIEL) -- SAVINGS')">Savings</div>
+          <div class="pill" data-fund="MAYA SAVINGS (AUDREY) -- EMERGENCY" onclick="selFund('MAYA SAVINGS (AUDREY) -- EMERGENCY')">Emergency</div>
+          <div class="pill" data-fund="MAYA TD 6M (ARIEL) -- TRAVEL" onclick="selFund('MAYA TD 6M (ARIEL) -- TRAVEL')">Travel</div>
         </div>
       </div>
       <div class="form-group">
@@ -318,9 +327,9 @@ const FUNDS = {
 };
 const GOALS = { savings: 80000, ef: 18000, travel: 2000 };
 const FUND_LABELS = {
-  savings: 'Maya Savings (Ariel)',
-  ef: 'Maya Savings (Audrey)',
-  travel: 'Maya TD 6M (Ariel)'
+  savings: 'MAYA SAVINGS (ARIEL) — SAVINGS',
+  ef: 'MAYA SAVINGS (AUDREY) — EMERGENCY',
+  travel: 'MAYA TD 6M (ARIEL)'
 };
 
 let selFundVal = '';
@@ -344,7 +353,7 @@ function selFund(v) {
   selFundVal = v;
   document.querySelectorAll('#fund-pills .pill').forEach(p => {
     p.className = 'pill';
-    if (p.onclick.toString().includes(v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))) {
+    if (p.getAttribute('data-fund') === v) {
       const cls = FUNDS[v];
       if (cls) p.classList.add('sel-' + cls);
     }
