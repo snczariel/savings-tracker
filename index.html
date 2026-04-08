@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Savings">
+<meta name="theme-color" content="#0f0f0f">
+<title>Savings Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0ede8;
+    --muted: rgba(240,237,232,0.45);
+    --hint: rgba(240,237,232,0.25);
+    --green: #4ade9a;
+    --green-dim: rgba(74,222,154,0.12);
+    --green-border: rgba(74,222,154,0.3);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.12);
+    --blue-border: rgba(96,165,250,0.3);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251,191,36,0.12);
+    --amber-border: rgba(251,191,36,0.3);
+    --danger: #f87171;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    overflow: hidden;
+  }
+
+  .app {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    padding: calc(16px + var(--safe-top)) 20px 14px;
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+    flex-shrink: 0;
+  }
+  .topbar-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .topbar-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+  .topbar-sub.connected { color: var(--green); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 4px;
+    font-size: 13px;
+    text-align: center;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 1.5px solid transparent;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.01em;
+  }
+  .tab.active {
+    color: var(--text);
+    border-bottom-color: var(--text);
+    font-weight: 500;
+  }
+
+  /* SCROLLABLE CONTENT */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 16px calc(20px + var(--safe-bottom));
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* SUMMARY CARDS */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .fund-card {
+    border-radius: 14px;
+    padding: 14px 12px;
+    border: 0.5px solid var(--border);
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+  .fund-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 14px 14px 0 0;
+  }
+  .fund-card.savings::before { background: var(--green); }
+  .fund-card.ef::before { background: var(--blue); }
+  .fund-card.travel::before { background: var(--amber); }
+
+  .fund-label {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .fund-card.savings .fund-label { color: var(--green); }
+  .fund-card.ef .fund-label { color: var(--blue); }
+  .fund-card.travel .fund-label { color: var(--amber); }
+
+  .fund-amount {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  /* SECTION HEADER */
+  .section-header {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--hint);
+    margin-bottom: 10px;
+  }
+
+  /* ENTRY ITEMS */
+  .entry-item {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 0.5px solid var(--border);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .entry-left { flex: 1; min-width: 0; }
+  .entry-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-bottom: 5px;
+  }
+  .entry-badge.savings { background: var(--green-dim); color: var(--green); border: 0.5px solid var(--green-border); }
+  .entry-badge.ef { background: var(--blue-dim); color: var(--blue); border: 0.5px solid var(--blue-border); }
+  .entry-badge.travel { background: var(--amber-dim); color: var(--amber); border: 0.5px solid var(--amber-border); }
+
+  .entry-meta { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .entry-right { text-align: right; padding-left: 8px; flex-shrink: 0; }
+  .entry-amount { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .entry-who { font-size: 11px; color: var(--hint); margin-top: 3px; font-family: 'DM Mono', monospace; }
+
+  /* FORM */
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .form-input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 0.5px solid var(--border2);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    font-family: 'DM Sans', sans-serif;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: rgba(255,255,255,0.3); }
+  .form-input::placeholder { color: var(--hint); }
+  .form-input option { background: #222; }
+
+  input[type="date"].form-input::-webkit-calendar-picker-indicator { filter: invert(0.6); }
+
+  /* PILL SELECTOR */
+  .pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    padding: 9px 16px;
+    border-radius: 24px;
+    border: 0.5px solid var(--border2);
+    font-size: 13px;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--muted);
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .pill:active { transform: scale(0.96); }
+  .pill.sel-savings { background: var(--green-dim); color: var(--green); border-color: var(--green-border); font-weight: 500; }
+  .pill.sel-ef { background: var(--blue-dim); color: var(--blue); border-color: var(--blue-border); font-weight: 500; }
+  .pill.sel-travel { background: var(--amber-dim); color: var(--amber); border-color: var(--amber-border); font-weight: 500; }
+  .pill.sel-who { background: var(--surface2); color: var(--text); border-color: var(--border2); font-weight: 500; }
+
+  /* SUBMIT BUTTON */
+  .submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: -0.2px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .submit-btn:active { opacity: 0.85; transform: scale(0.99); }
+  .submit-btn:disabled { opacity: 0.4; }
+
+  /* STATUS */
+  .status-msg {
+    font-size: 13px;
+    text-align: center;
+    margin-top: 12px;
+    min-height: 18px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .status-msg.success { color: var(--green); }
+  .status-msg.error { color: var(--danger); }
+
+  /* SETUP CARDS */
+  .setup-card {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 16px;
+    border: 0.5px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .setup-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+  }
+  .setup-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .setup-body { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .setup-code {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    margin-top: 10px;
+    word-break: break-all;
+    border: 0.5px solid var(--border);
+  }
+  .url-row { display: flex; gap: 8px; margin-top: 12px; }
+  .url-row .form-input { flex: 1; font-size: 13px; }
+  .save-btn {
+    padding: 0 16px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* LOADING */
+  .loading-text { color: var(--hint); font-size: 13px; font-family: 'DM Mono', monospace; padding: 8px 0; }
+  .empty-text { color: var(--hint); font-size: 13px; padding: 8px 0; }
+
+  /* TOTAL ROW */
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 0.5px solid var(--border);
+  }
+  .total-label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+  .total-value { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-title">Savings Tracker</div>
+    <div class="topbar-sub" id="conn-status">No sheet connected — go to Setup</div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('overview')">Overview</div>
+    <div class="tab" onclick="showTab('add')">Add entry</div>
+    <div class="tab" onclick="showTab('setup')">Setup</div>
+  </div>
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="section active" id="tab-overview">
+      <div class="summary-grid">
+        <div class="fund-card savings">
+          <div class="fund-label">Savings</div>
+          <div class="fund-amount" id="tot-savings">—</div>
+        </div>
+        <div class="fund-card ef">
+          <div class="fund-label">Emerg.</div>
+          <div class="fund-amount" id="tot-ef">—</div>
+        </div>
+        <div class="fund-card travel">
+          <div class="fund-label">Travel</div>
+          <div class="fund-amount" id="tot-travel">—</div>
+        </div>
+      </div>
+      <div class="total-row">
+        <div class="total-label">Total saved</div>
+        <div class="total-value" id="tot-all">—</div>
+      </div>
+      <div class="section-header">Recent entries</div>
+      <div id="entries-list"><div class="loading-text">Loading...</div></div>
+    </div>
+
+    <!-- ADD -->
+    <div class="section" id="tab-add">
+      <div class="form-group">
+        <label class="form-label">Amount (PHP)</label>
+        <input class="form-input" type="number" id="f-amount" placeholder="0.00" inputmode="decimal" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fund</label>
+        <div class="pill-row" id="fund-pills">
+          <div class="pill" onclick="selFund('Savings')">Savings</div>
+          <div class="pill" onclick="selFund('Emergency Fund')">Emergency Fund</div>
+          <div class="pill" onclick="selFund('Travel')">Travel</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Account / Bank</label>
+        <input class="form-input" type="text" id="f-account" placeholder="e.g. Maya, GCash, BPI...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Who</label>
+        <div class="pill-row" id="who-pills">
+          <div class="pill" onclick="selWho('Ariel')">Ariel</div>
+          <div class="pill" onclick="selWho('Partner')">Partner</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Remarks</label>
+        <input class="form-input" type="text" id="f-remarks" placeholder="Optional">
+      </div>
+      <button class="submit-btn" id="save-btn" onclick="submitEntry()">Save entry</button>
+      <div class="status-msg" id="form-status"></div>
+    </div>
+
+    <!-- SETUP -->
+    <div class="section" id="tab-setup">
+      <div class="setup-card">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <div>
+            <div class="setup-title">Create your Google Sheet</div>
+          </div>
+        </div>
+        <div class="setup-body">Make a new Google Sheet. Rename the first tab to <strong style="color:var(--text)">Entries</strong>. Add these headers in row 1:</div>
+        <div class="setup-code">Date &nbsp;|&nbsp; Fund &nbsp;|&nbsp; Account &nbsp;|&nbsp; Amount &nbsp;|&nbsp; Who &nbsp;|&nbsp; Remarks &nbsp;|&nbsp; Timestamp</div>
+      </div>
+
+      <div class="setup-card">
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <div>
+            <div class="setup-title">Add the Apps Script</div>
+          </div>
+        </div>
+        <div class="setup-body">In your Sheet: <strong style="color:var(--text)">Extensions → Apps Script</strong>. Replace all code with the script. Then: <strong style="color:var(--text)">Deploy → New deployment → Web app</strong>. Set "Who has access" to <strong style="color:var(--text)">Anyone</strong>. Copy the URL.</div>
+      </div>
+
+      <div class="setup-card">
+        <div class="setup-step">
+          <div class="step-num">3</div>
+          <div>
+            <div class="setup-title">Paste your script URL</div>
+          </div>
+        </div>
+        <div class="url-row">
+          <input class="form-input" type="url" id="url-input" placeholder="https://script.google.com/macros/s/...">
+          <button class="save-btn" onclick="saveUrl()">Save</button>
+        </div>
+        <div class="status-msg" id="url-status"></div>
+      </div>
+
+      <div class="setup-card">
+        <div class="setup-step">
+          <div class="step-num">4</div>
+          <div>
+            <div class="setup-title">Install on home screen</div>
+          </div>
+        </div>
+        <div class="setup-body"><strong style="color:var(--text)">iPhone:</strong> tap Share → Add to Home Screen<br><strong style="color:var(--text)">Android:</strong> tap menu → Add to Home Screen</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let selFundVal = '';
+let selWhoVal = '';
+let scriptUrl = localStorage.getItem('st_script_url') || '';
+
+function showTab(name) {
+  ['overview','add','setup'].forEach((t, i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', t === name);
+    document.getElementById('tab-' + t).classList.toggle('active', t === name);
+  });
+  if (name === 'overview') loadOverview();
+}
+
+function selFund(v) {
+  selFundVal = v;
+  document.querySelectorAll('#fund-pills .pill').forEach(p => {
+    p.className = 'pill';
+    if (p.textContent.trim() === v) {
+      if (v === 'Savings') p.classList.add('sel-savings');
+      else if (v === 'Emergency Fund') p.classList.add('sel-ef');
+      else p.classList.add('sel-travel');
+    }
+  });
+}
+
+function selWho(v) {
+  selWhoVal = v;
+  document.querySelectorAll('#who-pills .pill').forEach(p => {
+    p.className = 'pill';
+    if (p.textContent.trim() === v) p.classList.add('sel-who');
+  });
+}
+
+function setFormStatus(msg, type) {
+  const el = document.getElementById('form-status');
+  el.textContent = msg;
+  el.className = 'status-msg ' + (type || '');
+}
+
+function fmt(n) {
+  return '₱' + Math.round(n).toLocaleString('en-PH');
+}
+
+function fundClass(f) {
+  if (f === 'Savings') return 'savings';
+  if (f === 'Emergency Fund') return 'ef';
+  return 'travel';
+}
+
+async function submitEntry() {
+  if (!scriptUrl) { setFormStatus('Set your script URL in Setup first.', 'error'); return; }
+  const amount = document.getElementById('f-amount').value.trim();
+  const account = document.getElementById('f-account').value.trim();
+  const date = document.getElementById('f-date').value;
+  const remarks = document.getElementById('f-remarks').value.trim();
+  if (!amount || !selFundVal || !selWhoVal || !date) {
+    setFormStatus('Fill in amount, fund, who, and date.', 'error'); return;
+  }
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  setFormStatus('Saving...');
+  try {
+    const url = `${scriptUrl}?action=add&date=${encodeURIComponent(date)}&fund=${encodeURIComponent(selFundVal)}&account=${encodeURIComponent(account)}&amount=${encodeURIComponent(amount)}&who=${encodeURIComponent(selWhoVal)}&remarks=${encodeURIComponent(remarks)}`;
+    await fetch(url, { method: 'GET', mode: 'no-cors' });
+    setFormStatus('Saved!', 'success');
+    document.getElementById('f-amount').value = '';
+    document.getElementById('f-account').value = '';
+    document.getElementById('f-remarks').value = '';
+    selFundVal = ''; selWhoVal = '';
+    document.querySelectorAll('.pill').forEach(p => p.className = 'pill');
+    setTimeout(() => setFormStatus(''), 3000);
+  } catch(e) {
+    setFormStatus('Error — check your script URL.', 'error');
+  }
+  btn.disabled = false;
+}
+
+async function loadOverview() {
+  if (!scriptUrl) {
+    document.getElementById('entries-list').innerHTML = '<div class="empty-text">Connect your sheet in Setup to load data.</div>';
+    return;
+  }
+  document.getElementById('entries-list').innerHTML = '<div class="loading-text">Loading...</div>';
+  try {
+    const res = await fetch(`${scriptUrl}?action=get`);
+    const data = await res.json();
+    const entries = data.entries || [];
+    const totals = { Savings: 0, 'Emergency Fund': 0, Travel: 0 };
+    let grandTotal = 0;
+    entries.forEach(e => {
+      const amt = parseFloat(e.amount) || 0;
+      if (totals[e.fund] !== undefined) totals[e.fund] += amt;
+      grandTotal += amt;
+    });
+    document.getElementById('tot-savings').textContent = fmt(totals['Savings']);
+    document.getElementById('tot-ef').textContent = fmt(totals['Emergency Fund']);
+    document.getElementById('tot-travel').textContent = fmt(totals['Travel']);
+    document.getElementById('tot-all').textContent = fmt(grandTotal);
+    const recent = [...entries].reverse().slice(0, 10);
+    if (!recent.length) {
+      document.getElementById('entries-list').innerHTML = '<div class="empty-text">No entries yet.</div>';
+      return;
+    }
+    document.getElementById('entries-list').innerHTML = recent.map(e => {
+      const cls = fundClass(e.fund);
+      const meta = [e.account, e.date, e.remarks].filter(Boolean).join(' · ');
+      return `<div class="entry-item">
+        <div class="entry-left">
+          <div class="entry-badge ${cls}">${e.fund}</div>
+          <div class="entry-meta">${meta}</div>
+        </div>
+        <div class="entry-right">
+          <div class="entry-amount">${fmt(parseFloat(e.amount)||0)}</div>
+          <div class="entry-who">${e.who}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('entries-list').innerHTML = '<div class="empty-text">Could not load data.</div>';
+  }
+}
+
+function saveUrl() {
+  const val = document.getElementById('url-input').value.trim();
+  const el = document.getElementById('url-status');
+  if (!val.startsWith('https://script.google.com')) {
+    el.textContent = 'Paste a valid Apps Script URL.';
+    el.className = 'status-msg error'; return;
+  }
+  scriptUrl = val;
+  localStorage.setItem('st_script_url', val);
+  el.textContent = 'Connected!';
+  el.className = 'status-msg success';
+  document.getElementById('conn-status').textContent = 'Connected to Google Sheet';
+  document.getElementById('conn-status').className = 'topbar-sub connected';
+  setTimeout(() => showTab('overview'), 800);
+}
+
+// Init
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+if (scriptUrl) {
+  document.getElementById('url-input').value = scriptUrl;
+  document.getElementById('conn-status').textContent = 'Connected to Google Sheet';
+  document.getElementById('conn-status').className = 'topbar-sub connected';
+  loadOverview();
+}
+</script>
+</body>
+</html>
