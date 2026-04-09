@@ -140,6 +140,30 @@
 
   .loading-text { color: var(--hint); font-size: 13px; font-family: 'DM Mono', monospace; padding: 8px 0; }
   .empty-text { color: var(--hint); font-size: 13px; padding: 8px 0; }
+  .toggle-btn { text-align: center; padding: 12px; font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; cursor: pointer; border: 0.5px solid var(--border); border-radius: 10px; margin-top: 4px; transition: all 0.15s; }
+  .toggle-btn:active { background: var(--surface2); }
+
+  /* EXPENSES */
+  .exp-summary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .exp-summary-card { background: var(--surface); border-radius: 12px; padding: 10px 12px; border: 0.5px solid var(--border); }
+  .exp-summary-card.highlight { background: var(--surface2); border-color: var(--border2); }
+  .exp-summary-label { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--hint); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .exp-summary-val { font-size: 13px; font-weight: 600; color: var(--text); }
+  .add-exp-btn { padding: 6px 14px; background: var(--surface2); border: 0.5px solid var(--border2); border-radius: 20px; color: var(--muted); font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .exp-item { background: var(--surface); border-radius: 12px; border: 0.5px solid var(--border); margin-bottom: 8px; overflow: hidden; }
+  .exp-item-row { display: flex; align-items: center; padding: 11px 14px; gap: 10px; }
+  .exp-name { flex: 1; font-size: 14px; color: var(--text); }
+  .exp-name.flexible { color: var(--amber); }
+  .exp-cols { display: flex; gap: 12px; align-items: center; }
+  .exp-col { text-align: right; min-width: 64px; }
+  .exp-col-label { font-size: 9px; font-family: 'DM Mono', monospace; color: var(--hint); text-transform: uppercase; margin-bottom: 2px; }
+  .exp-col-val { font-size: 13px; font-weight: 500; color: var(--text); }
+  .exp-col-val.abono { color: var(--amber); font-size: 11px; }
+  .exp-edit-btn { padding: 4px 10px; border-radius: 6px; border: 0.5px solid var(--border); background: transparent; color: var(--hint); font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; flex-shrink: 0; }
+  .exp-header-row { display: flex; padding: 6px 14px; border-bottom: 0.5px solid var(--border); }
+  .exp-header-name { flex: 1; font-size: 10px; font-family: 'DM Mono', monospace; color: var(--hint); text-transform: uppercase; letter-spacing: 0.04em; }
+  .exp-header-col { min-width: 64px; text-align: right; font-size: 10px; font-family: 'DM Mono', monospace; color: var(--hint); text-transform: uppercase; letter-spacing: 0.04em; }
+  .exp-flexible-tag { font-size: 9px; font-family: 'DM Mono', monospace; color: var(--amber); background: var(--amber-dim); border: 0.5px solid var(--amber-border); border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -151,6 +175,7 @@
   <div class="tabs">
     <div class="tab active" onclick="showTab('overview')">Dashboard</div>
     <div class="tab" onclick="showTab('add')">Add entry</div>
+    <div class="tab" onclick="showTab('expenses')">Expenses</div>
     <div class="tab" onclick="showTab('setup')">🔒 Setup</div>
   </div>
   <div class="content">
@@ -169,7 +194,7 @@
           <div class="fund-card-top">
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-size:14px;">💚</span>
-              <div class="fund-label">Maya Savings (Ariel) — Savings</div>
+              <div class="fund-label">Maya TD 6M (Ariel) — Savings</div>
             </div>
           </div>
           <div class="fund-amount" id="tot-savings">—</div>
@@ -195,7 +220,7 @@
           <div class="fund-card-top">
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-size:14px;">✈️</span>
-              <div class="fund-label">Maya TD 6M (Ariel) — Travel</div>
+              <div class="fund-label">Maya TD 6M (Audrey) — Travel</div>
             </div>
           </div>
           <div class="fund-amount" id="tot-travel">—</div>
@@ -242,6 +267,29 @@
       <div class="status-msg" id="form-status"></div>
     </div>
 
+    <!-- LIVING EXPENSES -->
+    <div class="section" id="tab-expenses">
+      <div class="exp-summary-row">
+        <div class="exp-summary-card">
+          <div class="exp-summary-label">Ariel total</div>
+          <div class="exp-summary-val" id="exp-ariel-total">—</div>
+        </div>
+        <div class="exp-summary-card">
+          <div class="exp-summary-label">Audrey total</div>
+          <div class="exp-summary-val" id="exp-audrey-total">—</div>
+        </div>
+        <div class="exp-summary-card highlight">
+          <div class="exp-summary-label">Combined</div>
+          <div class="exp-summary-val" id="exp-combined-total">—</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="section-header" style="margin-bottom:0;">Monthly expenses</div>
+        <button class="add-exp-btn" onclick="openAddExpense()">+ Add</button>
+      </div>
+      <div id="exp-list"></div>
+    </div>
+
     <!-- SETUP -->
     <div class="section" id="tab-setup">
       <div class="setup-card">
@@ -270,7 +318,41 @@
   </div>
 </div>
 
-<!-- EDIT MODAL -->
+<!-- EXPENSE MODAL -->
+<div class="modal-overlay hidden" id="exp-modal">
+  <div class="modal">
+    <div class="modal-title" id="exp-modal-title">Edit expense</div>
+    <div class="form-group">
+      <label class="form-label">Expense name</label>
+      <input class="form-input" type="text" id="exp-name-input" placeholder="e.g. Grocery">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group">
+        <label class="form-label">Ariel (₱)</label>
+        <input class="form-input" type="number" id="exp-ariel-input" inputmode="decimal" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Audrey (₱)</label>
+        <input class="form-input" type="number" id="exp-audrey-input" inputmode="decimal" placeholder="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Abono by (optional)</label>
+      <input class="form-input" type="text" id="exp-abono-input" placeholder="Ariel or Audrey">
+    </div>
+    <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+      <input type="checkbox" id="exp-flexible-input" style="width:18px;height:18px;accent-color:var(--amber);">
+      <label for="exp-flexible-input" style="font-size:13px;color:var(--muted);cursor:pointer;">Flexible expense (can reduce)</label>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal('exp-modal')">Cancel</button>
+      <button class="modal-btn confirm" onclick="saveExpenseEdit()">Save</button>
+    </div>
+    <button class="modal-btn danger" id="exp-delete-btn" onclick="deleteExpense()" style="width:100%;margin-top:10px;display:none;">Delete expense</button>
+  </div>
+</div>
+
+
 <div class="modal-overlay hidden" id="edit-modal">
   <div class="modal">
     <div class="modal-title">Edit entry</div>
@@ -281,9 +363,9 @@
     <div class="form-group">
       <label class="form-label">Fund</label>
       <div class="pill-row" id="e-fund-pills">
-        <div class="pill" onclick="selEditFund('MAYA SAVINGS (ARIEL) -- SAVINGS')">Maya Savings (Ariel)</div>
-        <div class="pill" onclick="selEditFund('MAYA SAVINGS (AUDREY) -- EMERGENCY')">Maya Savings (Audrey)</div>
-        <div class="pill" onclick="selEditFund('MAYA TD 6M (ARIEL) -- TRAVEL')">Maya TD 6M (Ariel)</div>
+        <div class="pill" data-fund="MAYA SAVINGS (ARIEL) -- SAVINGS" onclick="selEditFund('MAYA SAVINGS (ARIEL) -- SAVINGS')">Savings</div>
+        <div class="pill" data-fund="MAYA SAVINGS (AUDREY) -- EMERGENCY" onclick="selEditFund('MAYA SAVINGS (AUDREY) -- EMERGENCY')">Emergency</div>
+        <div class="pill" data-fund="MAYA TD 6M (ARIEL) -- TRAVEL" onclick="selEditFund('MAYA TD 6M (ARIEL) -- TRAVEL')">Travel</div>
       </div>
     </div>
     <div class="form-group">
@@ -345,11 +427,12 @@ let allEntries = [];
 let scriptUrl = localStorage.getItem('st_script_url') || '';
 
 function showTab(name) {
-  ['overview','add','setup'].forEach((t, i) => {
+  ['overview','add','expenses','setup'].forEach((t, i) => {
     document.querySelectorAll('.tab')[i].classList.toggle('active', t === name);
     document.getElementById('tab-' + t).classList.toggle('active', t === name);
   });
   if (name === 'overview') loadOverview();
+  if (name === 'expenses') renderExpenses();
 }
 
 function selFund(v) {
@@ -375,7 +458,7 @@ function selEditFund(v) {
   editFundVal = v;
   document.querySelectorAll('#e-fund-pills .pill').forEach(p => {
     p.className = 'pill';
-    if (p.onclick.toString().includes(v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))) {
+    if (p.getAttribute('data-fund') === v) {
       const cls = FUNDS[v];
       if (cls) p.classList.add('sel-' + cls);
     }
@@ -467,32 +550,40 @@ async function loadOverview() {
       document.getElementById('tot-' + k).textContent = fmt(amt);
     });
     document.getElementById('tot-all').textContent = fmt(grandTotal);
-    const recent = [...allEntries].reverse().slice(0, 15);
+    const recent = [...allEntries].reverse();
     if (!recent.length) {
       document.getElementById('entries-list').innerHTML = '<div class="empty-text">No entries yet.</div>';
       return;
     }
-    document.getElementById('entries-list').innerHTML = recent.map((e, i) => {
-      const realIdx = allEntries.length - 1 - i;
-      const cls = fundClass(e.fund);
-      const meta = [e.date, e.remarks].filter(Boolean).join(' · ');
-      return `<div class="entry-item">
-        <div class="entry-main">
-          <div class="entry-left">
-            <div class="entry-badge ${cls}">${fundDisplayName(e.fund)}</div>
-            <div class="entry-meta">${meta}</div>
+    const renderEntries = (entries, showAll) => {
+      const visible = showAll ? entries : entries.slice(0, 5);
+      const hasMore = entries.length > 5;
+      return visible.map((e, i) => {
+        const realIdx = allEntries.length - 1 - i;
+        const cls = fundClass(e.fund);
+        const meta = [e.date, e.remarks].filter(Boolean).join(' · ');
+        return `<div class="entry-item">
+          <div class="entry-main">
+            <div class="entry-left">
+              <div class="entry-badge ${cls}">${fundDisplayName(e.fund)}</div>
+              <div class="entry-meta">${meta}</div>
+            </div>
+            <div class="entry-right">
+              <div class="entry-amount">${fmt(parseFloat(e.amount)||0)}</div>
+              <div class="entry-who">${e.who}</div>
+            </div>
           </div>
-          <div class="entry-right">
-            <div class="entry-amount">${fmt(parseFloat(e.amount)||0)}</div>
-            <div class="entry-who">${e.who}</div>
+          <div class="entry-actions">
+            <div class="entry-btn" onclick="openEdit(${realIdx})">Edit</div>
+            <div class="entry-btn delete" onclick="openDelete(${realIdx})">Delete</div>
           </div>
-        </div>
-        <div class="entry-actions">
-          <div class="entry-btn" onclick="openEdit(${realIdx})">Edit</div>
-          <div class="entry-btn delete" onclick="openDelete(${realIdx})">Delete</div>
-        </div>
-      </div>`;
-    }).join('');
+        </div>`;
+      }).join('') + (hasMore && !showAll ? `<div class="toggle-btn" onclick="showAllEntries()">Show ${entries.length - 5} older entries</div>` : hasMore ? `<div class="toggle-btn" onclick="showRecentOnly()">Show less</div>` : '');
+    };
+    window._allRecent = recent;
+    window.showAllEntries = () => { document.getElementById('entries-list').innerHTML = renderEntries(recent, true); };
+    window.showRecentOnly = () => { document.getElementById('entries-list').innerHTML = renderEntries(recent, false); };
+    document.getElementById('entries-list').innerHTML = renderEntries(recent, false);
   } catch(e) {
     document.getElementById('entries-list').innerHTML = '<div class="empty-text">Could not load data.</div>';
   }
@@ -510,8 +601,7 @@ function openEdit(idx) {
   document.getElementById('edit-status').textContent = '';
   document.querySelectorAll('#e-fund-pills .pill').forEach(p => {
     p.className = 'pill';
-    const fv = p.onclick.toString().match(/'([^']+)'/)?.[1];
-    if (fv && fv === editFundVal) p.classList.add('sel-' + (FUNDS[fv] || 'savings'));
+    if (p.getAttribute('data-fund') === editFundVal) p.classList.add('sel-' + (FUNDS[editFundVal] || 'savings'));
   });
   document.querySelectorAll('#e-who-pills .pill').forEach(p => {
     p.className = 'pill';
@@ -581,7 +671,122 @@ function saveUrl() {
   setTimeout(() => showTab('overview'), 800);
 }
 
-// Init
+// EXPENSES
+const DEFAULT_EXPENSES = [
+  { id:1, name:'Rent', ariel:6500, audrey:6500, abono:'Ariel', flexible:false },
+  { id:2, name:'Meralco', ariel:5000, audrey:2000, abono:'Audrey', flexible:false },
+  { id:3, name:'Maynilad', ariel:100, audrey:100, abono:'Audrey', flexible:false },
+  { id:4, name:'Internet', ariel:850, audrey:850, abono:'Audrey', flexible:false },
+  { id:5, name:'Grocery', ariel:6000, audrey:4000, abono:'Ariel', flexible:false },
+  { id:6, name:'Water', ariel:90, audrey:90, abono:'Audrey', flexible:false },
+  { id:7, name:'Eat out', ariel:3500, audrey:0, abono:'', flexible:true },
+  { id:8, name:'Grab food', ariel:2400, audrey:600, abono:'', flexible:true },
+  { id:9, name:'Laundry', ariel:500, audrey:500, abono:'', flexible:true },
+  { id:10, name:'Pets', ariel:5500, audrey:1500, abono:'', flexible:false },
+  { id:11, name:'Transpo', ariel:2300, audrey:500, abono:'', flexible:true },
+  { id:12, name:'Pamper', ariel:6000, audrey:1000, abono:'', flexible:false },
+  { id:13, name:'Shopping', ariel:5000, audrey:1500, abono:'', flexible:true },
+  { id:14, name:'Subs', ariel:1050, audrey:1820, abono:'', flexible:true },
+  { id:15, name:'Dentist', ariel:0, audrey:1250, abono:'', flexible:false },
+  { id:16, name:'Misc', ariel:5000, audrey:1500, abono:'', flexible:true },
+  { id:17, name:'Load', ariel:200, audrey:200, abono:'', flexible:false },
+  { id:18, name:'Silang', ariel:0, audrey:3000, abono:'', flexible:false },
+];
+
+let expenses = JSON.parse(localStorage.getItem('aa_expenses') || 'null') || DEFAULT_EXPENSES;
+let editingExpId = null;
+
+function saveExpenses() { localStorage.setItem('aa_expenses', JSON.stringify(expenses)); }
+
+function renderExpenses() {
+  const arielTotal = expenses.reduce((s, e) => s + (e.ariel||0), 0);
+  const audreyTotal = expenses.reduce((s, e) => s + (e.audrey||0), 0);
+  document.getElementById('exp-ariel-total').textContent = '₱' + arielTotal.toLocaleString('en-PH');
+  document.getElementById('exp-audrey-total').textContent = '₱' + audreyTotal.toLocaleString('en-PH');
+  document.getElementById('exp-combined-total').textContent = '₱' + (arielTotal + audreyTotal).toLocaleString('en-PH');
+
+  document.getElementById('exp-list').innerHTML = `
+    <div class="exp-item">
+      <div class="exp-header-row">
+        <div class="exp-header-name">Expense</div>
+        <div class="exp-header-col" style="margin-right:12px;">Ariel</div>
+        <div class="exp-header-col">Audrey</div>
+        <div style="width:32px;"></div>
+      </div>
+      ${expenses.map(e => `
+        <div class="exp-item-row">
+          <div class="exp-name${e.flexible ? ' flexible' : ''}">
+            ${e.name}${e.flexible ? '<span class="exp-flexible-tag">flex</span>' : ''}
+            ${e.abono ? `<div style="font-size:10px;color:var(--hint);margin-top:2px;font-family:'DM Mono',monospace;">abono: ${e.abono}</div>` : ''}
+          </div>
+          <div class="exp-cols">
+            <div class="exp-col">
+              <div class="exp-col-val">${e.ariel > 0 ? '₱' + e.ariel.toLocaleString('en-PH') : '—'}</div>
+            </div>
+            <div class="exp-col">
+              <div class="exp-col-val">${e.audrey > 0 ? '₱' + e.audrey.toLocaleString('en-PH') : '—'}</div>
+            </div>
+          </div>
+          <button class="exp-edit-btn" onclick="openEditExpense(${e.id})">Edit</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function openAddExpense() {
+  editingExpId = null;
+  document.getElementById('exp-modal-title').textContent = 'Add expense';
+  document.getElementById('exp-name-input').value = '';
+  document.getElementById('exp-ariel-input').value = '';
+  document.getElementById('exp-audrey-input').value = '';
+  document.getElementById('exp-abono-input').value = '';
+  document.getElementById('exp-flexible-input').checked = false;
+  document.getElementById('exp-delete-btn').style.display = 'none';
+  document.getElementById('exp-modal').classList.remove('hidden');
+}
+
+function openEditExpense(id) {
+  const exp = expenses.find(e => e.id === id);
+  if (!exp) return;
+  editingExpId = id;
+  document.getElementById('exp-modal-title').textContent = 'Edit expense';
+  document.getElementById('exp-name-input').value = exp.name;
+  document.getElementById('exp-ariel-input').value = exp.ariel || '';
+  document.getElementById('exp-audrey-input').value = exp.audrey || '';
+  document.getElementById('exp-abono-input').value = exp.abono || '';
+  document.getElementById('exp-flexible-input').checked = exp.flexible || false;
+  document.getElementById('exp-delete-btn').style.display = 'block';
+  document.getElementById('exp-modal').classList.remove('hidden');
+}
+
+function saveExpenseEdit() {
+  const name = document.getElementById('exp-name-input').value.trim();
+  const ariel = parseFloat(document.getElementById('exp-ariel-input').value) || 0;
+  const audrey = parseFloat(document.getElementById('exp-audrey-input').value) || 0;
+  const abono = document.getElementById('exp-abono-input').value.trim();
+  const flexible = document.getElementById('exp-flexible-input').checked;
+  if (!name) return;
+  if (editingExpId) {
+    const idx = expenses.findIndex(e => e.id === editingExpId);
+    if (idx > -1) expenses[idx] = { ...expenses[idx], name, ariel, audrey, abono, flexible };
+  } else {
+    const newId = Math.max(0, ...expenses.map(e => e.id)) + 1;
+    expenses.push({ id: newId, name, ariel, audrey, abono, flexible });
+  }
+  saveExpenses();
+  closeModal('exp-modal');
+  renderExpenses();
+}
+
+function deleteExpense() {
+  if (!editingExpId) return;
+  expenses = expenses.filter(e => e.id !== editingExpId);
+  saveExpenses();
+  closeModal('exp-modal');
+  renderExpenses();
+}
+
 document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
 if (scriptUrl) {
   document.getElementById('url-input').value = scriptUrl;
